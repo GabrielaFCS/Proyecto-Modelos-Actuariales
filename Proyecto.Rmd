@@ -1,0 +1,427 @@
+---
+title: "Modelo de información siniestral de incendios en el Estado de México (2015-2022) a través de ajustes paramétricos y no paramétricos"
+author: "Gabriela Fernanda Calderón Sánchez"
+date: "2023-12-02"
+output: pdf_document
+# classoption:
+# - twocolumn
+---
+
+# 1.	Introducción
+
+El Estado de México, inmerso en una región geográfica propensa a diversos fenómenos, se enfrenta de manera recurrente al desafío de los incendios. Estos incidentes no solo representan una amenaza para la seguridad de las personas y la propiedad, sino que también generan consecuencias económicas y medioambientales significativas. La comprensión detallada y el análisis estadístico de estos siniestros son esenciales para la prevención y la gestión de riesgos, tanto para las comunidades afectadas como para las compañías aseguradoras.
+
+En este contexto, el presente proyecto se propone analizar la información estadística relacionada con la magnitud de los siniestros por incendios en el Estado de México durante el período comprendido entre los años 2015 y 2022, específicamente aquellos causados por corto circuito y electricidad. Se emplearán modelos paramétricos y no paramétricos para identificar la distribución que mejor se ajusta a los montos reclamados por este tipo de siniestros, así como su frecuencia.
+
+Los resultados obtenidos a través de este análisis no solo podrán contribuir al entendimiento del comportamiento de los incendios en la región, sino que también facilitarán la realización de estimaciones futuras, permitiendo la evaluación de posibles ajustes en las políticas y estrategias de seguros para hacer frente a este desafío medioambiental y social.
+
+# 2.	Marco Teórico-conceptual
+
+## 2.1.	Riesgo
+El riesgo se define como la probabilidad de que un evento resulte en daños, pérdidas u otras consecuencias negativas, pudiendo desencadenar un siniestro. En el caso de que ocurra un siniestro y el afectado sea una persona física, ésta tiene la opción de recurrir a su compañía de seguros para solicitar la cobertura de los daños personales o materiales y buscar una indemnización. Sin embargo, es importante destacar que cada póliza de seguro cuenta con distintas coberturas que pueden cubrir o excluir determinados riesgos y daños (Allianz, 2023). 
+
+## 2.2.	 Siniestro
+Un siniestro, en el contexto del seguro, se refiere a un evento predicho en el contrato de seguro que puede causar daños a la persona asegurada o a sus propiedades. La ICEA (Investigación Cooperativa entre Entidades Aseguradoras y Fondos de Pensiones) identifica tres elementos clave en su definición: la existencia de dicho contrato de seguro, la ocurrencia de un evento contemplado en el contrato y la generación de daño al interés económico asegurado. Adicionalmente, existen tres categorías de daños: disminución del activo (destrucción total o parcial de bienes), no aumento del activo (pérdida de beneficios) y aumento del pasivo (responsabilidad civil) (Allianz, 2023).
+
+## 2.3.	Seguro
+El seguro representa una estrategia efectiva para protegerse contra riesgos al delegarlos a una compañía aseguradora, la cual se compromete a reparar o indemnizar los daños originados por eventos imprevistos. Este sistema implica abonar una cantidad específica a cambio de recibir beneficios o compensaciones en el futuro (MAPFRE, 2023).
+
+## 2.4.	Modelo
+Un modelo matemático se define como una representación formal y estructurada que incorpora conocimientos científicos y tecnológicos para predecir el comportamiento de sistemas naturales o estructuras específicas. Estos modelos se expresan mediante ecuaciones y símbolos matemáticos, funcionando como herramientas para comprender y anticipar el fenómeno que representan (Herrera Revilla en Castillo García, 2012).
+
+### 2.4.1.	Modelo paramétrico
+Un modelo paramétrico implica la necesidad de asignar valores a los parámetros de una distribución teórica específica. Aunque es posible asignar valores de manera arbitraria, la obtención de un modelo efectivo es poco probable. Por ende, resulta más lógico emplear una muestra representativa del problema en cuestión y, a partir de la información proporcionada por los datos, calcular valores más precisos para los parámetros (Klugman, 2012).
+
+### 2.4.2.	Modelo no paramétrico (Estimadores de densidad de Kernel)
+Este modelo se aplica a una muestra aleatoria de observaciones en la que se conoce el valor de cada una, sin la existencia de datos censurados o truncados, aunque puede haber repeticiones. El propósito fundamental de la función de Kernel es generar una variable continua cuya función de densidad, conocida como densidad de Kernel suavizada, se aproxime a la función de densidad empírica discreta. (Broverman, 2009)
+
+Este método simultáneamente construye tanto el estimador de densidad de Kernel como el estimador de distribución de Kernel. Existen numerosos Kernels que pueden emplearse para crear estos estimadores, siendo los más usuales el Kernel rectangular, triangular y gamma.
+
+## 2.5.	Pruebas de bondad de ajuste
+Las pruebas de bondad de ajuste se emplean en el análisis de datos con el propósito de determinar si una muestra aleatoria de un conjunto de datos proviene de una distribución especificada o propuesta. Estas pruebas son valiosas en el contexto de modelado, ya que nos ayudan a identificar qué distribuciones podríamos emplear para que nuestros datos se aproximen al comportamiento natural.
+
+En estas pruebas, se evalúa la hipótesis nula (H0), que supone que la muestra de datos se origina de una población con la distribución indicada, frente a la hipótesis alternativa (Ha), donde la muestra de datos no se origina de una población con la distribución indicada. El objetivo es obtener un valor o criterio que nos permita aceptar la distribución que estamos utilizando, indicando así que el ajuste del modelo es adecuado, ya que la muestra se comporta de manera similar al valor teórico real (Vera Correa, 2017).
+
+# 3.	Metodología
+Primeramente se realizará un análisis preliminar a la base de datos siniestrales en materia de incendios en México, para definir nuestras variables de interés, así como los filtros correspondientes, haciendo uso principalmente de las librerías *dplyr* y *ggplot2* del software estadístico R. Se elegirá la causa de incendios en el Estado de México que tenga mayor impacto económico en las aseguradoras, y se considerarán únicamente valores mayores a 0. Las variables de interés para este análisis serán aquellas que comprendan el número de incidencia de siniestros y el monto pagado de los mismos.
+
+Para el caso del número de incidencia, se realizará un ajuste no paramétrico de la distribución empírica con los kernel uniforme, triangular, y gamma, a través de funciones pertenecientes a las librerías *stats* y *kdensity*; y un ajuste paramétrico con las distribuciones discretas Poisson, Geométrica, y Binomial Negativa, haciendo uso de las librerías *fitdistrplus* y *nortest*, además de las ya mencionadas, analizando sus criterios de información: AIC, BIC, y Loglikelihood.
+
+Finalmente, los montos de pago de siniestros se modelarán con un ajuste no paramétrico similar al realizado con el número de incidencia, y posteriormente con un ajuste paramétrico con las distribuciones continuas Gamma, LogGamma, LogNormal, Weibull, Loglogística y Pareto, añadiendo el uso de las librerías *actuar*, para acceder a ciertas distribuciones, y *knitr* para la presentación de resultados, en los cuales se compararán las distribuciones para determinar el mejor modelo para los datos analizados.
+
+# 4.	Base de datos 
+La base de datos utilizada para el presente análisis se encuentra en los Datos Abiertos de la sección de Transparencia de la CNSF (Comisión Nacional de Seguros y Fianzas), bajo el número de archivo 46. Este archivo de valores separados por comas (csv) contiene información estadística de siniestros de incendios, proporcionada por la Dirección General de Desarrollo e Investigación de la Comisión, consistiendo en 115,024 observaciones desde 2015 hasta 2022, tomando en cuenta 20 variables.
+
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r include=FALSE}
+library(dplyr) 
+library(stats)
+library(kdensity)
+library(ggplot2)
+library(actuar) 
+library(fitdistrplus) 
+library(nortest) 
+library(knitr)
+```
+
+```{r paged.print=TRUE}
+data <- read.csv("Base_Incendios.csv", 
+                 encoding = "latin1")
+```
+
+```{r include=FALSE}
+data$ENTIDAD[data$ENTIDAD ==  "AGUASCALIENTES" ] <- "Aguascalientes"
+data$ENTIDAD[data$ENTIDAD ==  "BAJA CALIFORNIA"] <- "Baja California"
+data$ENTIDAD[data$ENTIDAD ==  "BAJA CALIFORNIA SUR"] <- "Baja California Sur"
+data$ENTIDAD[data$ENTIDAD ==  "CAMPECHE"] <- "Campeche"
+data$ENTIDAD[data$ENTIDAD ==  "CHIAPAS"] <- "Chiapas" 
+data$ENTIDAD[data$ENTIDAD ==  "CHIHUAHUA"] <- "Chihuahua" 
+data$ENTIDAD[data$ENTIDAD ==  "Distrito Federal"] <- "Ciudad de México"
+data$ENTIDAD[data$ENTIDAD ==  "Ciudad de Mexico"] <- "Ciudad de México" 
+data$ENTIDAD[data$ENTIDAD ==  "DISTRITO FEDERAL"] <- "Ciudad de México" 
+data$ENTIDAD[data$ENTIDAD ==  "COAHUILA"] <- "Coahuila" 
+data$ENTIDAD[data$ENTIDAD ==  "COLIMA"] <- "Colima" 
+data$ENTIDAD[data$ENTIDAD ==  "DURANGO"] <- "Durango" 
+data$ENTIDAD[data$ENTIDAD ==  "EN EL EXTRANJERO"] <- "Extranjero" 
+data$ENTIDAD[data$ENTIDAD ==  "En el Extranjero"] <- "Extranjero"
+data$ENTIDAD[data$ENTIDAD ==  "Mexico"] <- "Estado de México"
+data$ENTIDAD[data$ENTIDAD ==  "MEXICO"] <- "Estado de México"
+data$ENTIDAD[data$ENTIDAD ==  "Estado de Mexico"] <- "Estado de México"
+data$ENTIDAD[data$ENTIDAD ==  "GUANAJUATO"] <- "Guanajuato"
+data$ENTIDAD[data$ENTIDAD ==  "GUERRERO"] <- "Guerrero"
+data$ENTIDAD[data$ENTIDAD ==  "HIDALGO"] <- "Hidalgo" 
+data$ENTIDAD[data$ENTIDAD ==  "JALISCO"] <- "Jalisco" 
+data$ENTIDAD[data$ENTIDAD ==  "MICHOACAN"] <- "Michoacán" 
+data$ENTIDAD[data$ENTIDAD ==  "Michoacan"] <- "Michoacán" 
+data$ENTIDAD[data$ENTIDAD ==  "MORELOS"] <- "Morelos" 
+data$ENTIDAD[data$ENTIDAD ==  "NAYARIT"] <- "Nayarit" 
+data$ENTIDAD[data$ENTIDAD ==  "NUEVO LEON"] <- "Nuevo Leon" 
+data$ENTIDAD[data$ENTIDAD ==  "OAXACA"] <- "Oaxaca" 
+data$ENTIDAD[data$ENTIDAD ==  "PUEBLA"] <- "Puebla" 
+data$ENTIDAD[data$ENTIDAD ==  "QUERETARO"] <- "Querétaro" 
+data$ENTIDAD[data$ENTIDAD ==  "Queretaro"] <- "Querétaro" 
+data$ENTIDAD[data$ENTIDAD ==  "QUINTANA ROO"] <- "Quintana Roo" 
+data$ENTIDAD[data$ENTIDAD ==  "SAN LUIS POTOSI"] <- "San Luis Potosí" 
+data$ENTIDAD[data$ENTIDAD ==  "San Luis Potosi"] <- "San Luis Potosí" 
+data$ENTIDAD[data$ENTIDAD ==  "SINALOA"] <- "Sinaloa" 
+data$ENTIDAD[data$ENTIDAD ==  "SONORA"] <- "Sonora" 
+data$ENTIDAD[data$ENTIDAD ==  "TABASCO"] <- "Tabasco" 
+data$ENTIDAD[data$ENTIDAD ==  "TAMAULIPAS"] <- "Tamaulipas" 
+data$ENTIDAD[data$ENTIDAD ==  "TLAXCALA"] <- "Tlaxcala" 
+data$ENTIDAD[data$ENTIDAD ==  "VERACRUZ"] <- "Veracruz" 
+data$ENTIDAD[data$ENTIDAD ==  "YUCATAN"] <- "Yucatan" 
+data$ENTIDAD[data$ENTIDAD ==  "Yucatan"] <- "Yucatán"
+data$ENTIDAD[data$ENTIDAD ==  "ZACATECAS"] <- "Zacatecas" 
+```
+```{r colors, include=FALSE}
+colors <- c("#D973B5","#30588C", "#448AA6", "#F2B5A7", "#A6726D")
+```
+
+Para el presente trabajo, se filtró primeramente la variable de Entidad Federativa para seleccionar las observaciones relacionadas al Estado de México, el cual se encuentra en el tercer lugar de siniestralidad por incendios en el país, de acuerdo con un análisis de esta misma base de datos, al contrastarla con una de nuestras variables de interés, el número de siniestros.
+
+
+```{r echo=FALSE, fig.height=4, fig.width=8}
+data %>%
+  group_by(ENTIDAD)%>%
+  summarize(counts = n()) %>%
+  arrange(counts) %>%                                
+  mutate(Position = factor(ENTIDAD, ENTIDAD))%>%
+  ggplot(aes(x=Position, y=counts)) +geom_bar(stat="identity", color=colors[2], fill=colors[3])+
+  ggtitle("Cantidad de Siniestros por Entidad")+ylab("Número de Siniestros")+xlab("Entidad")+
+  coord_flip()+ theme(legend.position="none", plot.title = element_text(hjust = 0.5), text = element_text(size = 10))  
+```
+
+
+Además, se filtró para los valores mayores a cero en las variables de Monto del Siniestro, y de Monto Pagado, ordenando para esta última, pues es nuestra variable de interés para el modelo. Al graficar las mayores causas de los siniestros por incendio en la región, de acuerdo con el monto pagado por la aseguradora, podemos observar que predomina “Corto circuito / Electricidad”, así que se tomó esta como último filtro para realizar los ajustes a modelos paramétricos y no paramétricos.
+
+
+```{r include=FALSE}
+siniestros <- as_tibble(data) %>%
+  filter(MONTO.PAGADO>0)%>%
+  filter(MONTO.DE.SINIESTRO>0)%>%
+  arrange(MONTO.PAGADO) %>%
+  filter(ENTIDAD == "Estado de México")
+```
+
+```{r echo=FALSE, fig.height=3, fig.width=8}
+siniestros %>%
+  group_by(CAUSA.DEL.SINIESTRO)%>%
+  summarise(MontoPagadoSuma=sum(MONTO.PAGADO))%>%
+  arrange(MontoPagadoSuma)%>%
+  mutate(Position = factor(CAUSA.DEL.SINIESTRO, CAUSA.DEL.SINIESTRO))%>%
+  top_n(5)%>%
+  ggplot()+geom_bar(mapping=aes(x=Position,y= MontoPagadoSuma),stat = "identity", fill=colors[3], color=colors[2])+
+  ggtitle("Causas de incendio según monto pagado")+ylab("Monto Pagado")+xlab("Causa")+
+  coord_flip()
+
+
+```
+```{r include=FALSE}
+siniestros <- filter(siniestros, CAUSA.DEL.SINIESTRO=="Corto circuito / Electricidad")
+```
+
+Después de realizar los ajustes anteriores, obtenemos que nuestras variables de interés se distribuyen de la siguiente manera:
+
+
+```{r echo=FALSE}
+NumSini <- sort(siniestros$NUMERO.DE.SINIESTROS, decreasing=FALSE)
+plot(density(NumSini), main="Distribución empírica del número de siniestros", xlab="Número de siniestros", ylab="Densidad")
+```
+
+
+```{r echo=FALSE}
+MontoPago <- sort(siniestros$MONTO.PAGADO, decreasing=TRUE)
+plot(density(MontoPago), main="Distribución empírica del monto de siniestros", xlab="Monto de siniestros", ylab="Densidad")
+```
+
+# 5. Resultados del Ajuste
+
+## 5.1. Número de Siniestros
+
+### 5.1.1. Ajuste no paramétrico
+
+Realizando el ajuste no paramétrico del número de siniestros con los kernel uniforme, triangular, y gamma, obtenemos los siguientes resultados gráficos
+
+```{r include=FALSE}
+k_uniformeNS <- density(NumSini, bw="ucv", kernel="rectangular") 
+k_triangularNS <- density(NumSini, bw="ucv", kernel="triangular") 
+k_gammaNS <- kdensity(NumSini, start="gamma", kernel="gamma")
+```
+
+```{r echo=FALSE}
+plot(density(NumSini), col="black", main="Modelo no paramétrico del número de siniestros", ylab="Densidad", xlab="Número de siniestros")
+lines(k_triangularNS, col="cyan")
+lines(k_uniformeNS, col="blue")
+lines(k_gammaNS, col="violet")
+legend("topright", legend=c("Distribución empírica", "Kernel triangular","Kernel uniforme","Kernel gamma"), lty=1, col=c("black","cyan","blue","violet"))
+
+```
+De lo cual podemos concluir que el kernel uniforme se ajusta de mejor manera, puesto que el kernel gamma suavizó demasiado la distribución, mientras que el kernel triangular sobreestima la densidad en mayor medida en varios de los puntos.
+
+### 5.1.2. Ajuste paramétrico
+
+Se realizó el ajuste paramétrico con las distribuciones discretas Poisson, Geométrica, y Binomial Negativa, obteniendo los siguientes resultados:
+
+
+```{r include=FALSE}
+numPoi <- fitdist(NumSini, "pois")
+numGeom <- fitdist(NumSini, "geom")
+numNB <- fitdist(NumSini, "nbinom")
+```
+
+```{r echo=FALSE}
+
+plot(density(NumSini), col="black", main="Modelo paramétrico del número de siniestros", ylab="Densidad", xlab="Número de siniestros")
+lines(NumSini, dpois(NumSini, numPoi$estimate), col="blue", type="h")
+lines(NumSini, dnbinom(NumSini, size=numNB$estimate[1], mu=numNB$estimate[2]), col="violet", type="h")
+lines(NumSini, dgeom(NumSini, numGeom$estimate), col="cyan", type="h")
+legend("topright", legend=c("Distribución empírica", "Binomial Negativa","Poisson","Geométrica"), lty=1, col=c("black","violet","blue","cyan"))
+
+```
+
+```{r include=FALSE}
+adPoi <- ad.test(ppois(NumSini, lambda=numPoi$estimate[1]))
+
+adGeom <- ad.test(pgeom(NumSini, numGeom$estimate[1]))
+
+adNB <- ad.test(pnbinom(NumSini, size=numNB$estimate[1], mu=numNB$estimate[2]))
+
+```
+
+```{r echo=FALSE}
+Distribuciones <- c("Poisson", "Geométrica","Binomial Negativa")
+AIC <- c(numPoi$aic, numGeom$aic, numNB$aic)
+BIC <- c(numPoi$bic, numGeom$bic, numNB$bic)
+Loglikelihood <- c(numPoi$loglik, numGeom$loglik, numNB$loglik)
+AD <- c(adPoi$statistic, adGeom$statistic, adNB$statistic)
+ADpvalue <- c(adPoi$p.value, adGeom$p.value, adNB$p.value)
+TablaNS <- data.frame(Distribuciones, AIC, BIC, Loglikelihood, AD, ADpvalue) %>%
+  arrange(AIC)
+kable(TablaNS, caption="Ajustes paramétricos para el número de siniestros")
+```
+
+Al analizar la tabla, podemos observar que la distribución con menor criterio de información de Akaike (AIC) es la Binomial Negativa, por lo que es la que mejor se ajusta a los datos analizados.
+
+### 5.1.3. Mejores modelos para el número de siniestros
+
+Concluimos que la distribución Binomial Negativa con los parámetros mostrados a continuación es el mejor ajuste paramétrico para la variable de número de siniestros, mientras que el kernel uniforme es el mejor ajuste no paramétrico. Visualmente, se aprecia que es éste último el mejor ajuste entre ambos.
+
+```{r echo=FALSE}
+binneg <- data.frame(numNB$estimate, confint(numNB))
+names(binneg) <- c("Parámetro", "Límite inferior (2.5%)", "Límite superior (97.5%)")
+kable(binneg, caption="Parámetros de la Binomial Negativa")
+```
+
+```{r echo=FALSE}
+
+plot(density(NumSini), col="black", main="Mejores modelos para el número de siniestros", ylab="Densidad", xlab="Número de siniestros")
+lines(k_uniformeNS, col="blue")
+lines(NumSini, dnbinom(NumSini, size=numNB$estimate[1], mu=numNB$estimate[2]), col="violet", type="h")
+legend("topright",legend=c("Distribución empírica", "Binomial Negativa","Kernel Uniforme"), lty=1, col=c("black","violet","blue"))
+
+```
+
+## 5.2. Monto de Pago de los Siniestros
+
+### 5.2.1. Ajuste no Paramétrico
+
+Realizando el ajuste no paramétrico del número de siniestros con los kernel uniforme, triangular, y gamma, obtenemos los siguientes resultados gráficos:
+
+```{r include=FALSE}
+k_uniformeMP <- density(MontoPago, bw="ucv", kernel="rectangular") 
+k_triangularMP <- density(MontoPago, bw="ucv", kernel="triangular") 
+k_gammaMP <- kdensity(MontoPago, start="gamma", kernel="gamma")
+```
+```{r echo=FALSE}
+plot(k_gammaMP, col="violet", main="Modelo no paramétrico del monto de siniestros", xlab="Monto de Pago", ylab="Densidad")
+lines(k_uniformeMP, col="blue")
+lines(k_triangularMP, col="cyan")
+lines(density(MontoPago), col="black")
+legend("topright", legend=c("Distribución empírica", "Kernel triangular","Kernel uniforme","Kernel gamma"), lty=1, col=c("black","cyan","blue","violet"))
+```
+De lo cual podemos concluir que el kernel triangular hace un mejor ajuste al no suavizar tanto la distribución como lo hace el kernel gamma, además de estimar correctamente la cola pesada de la distribución empírica.
+
+### 5.2.2. Ajuste Paramétrico
+
+Se realizó el ajuste paramétrico con las distribuciones continuas Gamma, LogGamma, LogNormal, Weibull, Loglogística, y Pareto, obteniendo los siguientes resultados: 
+
+```{r include=FALSE}
+sumlog <- sum(log(MontoPago))
+media <- mean(MontoPago)
+fitgamma <- fitdist(MontoPago, "gamma",method="mme")
+alpha1<- fitgamma$estimate[1]
+fg <- function(x){
+  -((length(MontoPago)*x[1]*(log(x[1])-log(media)-1))-length(MontoPago)*log(gamma(x[1]))+sumlog*(x[1]-1))
+}
+funciong <- nlm(fg, alpha1)
+
+alphagamma <- funciong$estimate
+thetagamma <- media/alphagamma
+
+fitgamma2 <- fitdist(MontoPago, "gamma", start= list(shape=alphagamma, scale=thetagamma))
+summary(fitgamma2)
+
+paramGamma <- paste("alpha= ", round(fitgamma2$estimate[1],4),", theta= ", round(fitgamma2$estimate[2],4))
+
+gofstat(fitgamma2)
+ks.test(MontoPago, "pgamma", shape=alphagamma, scale=thetagamma)
+ad.test(pgamma(MontoPago, shape=alphagamma, scale=thetagamma))
+```
+```{r include=FALSE}
+
+fitln<- fitdist(MontoPago, "lnorm")
+summary(fitln)
+confint(fitln)
+mu <- fitln$estimate[1]
+sigmaln <- fitln$estimate[2]
+mu
+sigmaln
+paramLnorm <- paste("mu= ", round(mu,4),", sigmaln= ", round(sigmaln,4))
+gofstat(fitln)
+ks.test(MontoPago, "plnorm", meanlog=mu, sdlog=sigmaln)
+ad.test(plnorm(MontoPago,  meanlog=mu, sdlog=sigmaln))
+
+```
+```{r include=FALSE}
+
+fitwei<- fitdist(MontoPago, "weibull")
+summary(fitwei)
+confint(fitwei)
+shapewei <- fitwei$estimate[1]
+scalewei <- fitwei$estimate[2]
+paramWei <- paste("tao= ", round(shapewei,4),", theta= ", round(scalewei,4))
+gofstat(fitwei)
+ks.test(MontoPago, "pweibull", shape=shapewei, scale=scalewei)
+ad.test(pweibull(MontoPago, shape=shapewei, scale=scalewei))
+
+```
+```{r include=FALSE}
+
+fitllogis<- fitdist(MontoPago, "llogis")
+summary(fitllogis)
+confint(fitllogis)
+shapellog <- fitllogis$estimate[1]
+scalellog <- fitllogis$estimate[2]
+paramLlog <- paste("forma= ", round(shapellog,4),", escala= ", round(scalellog,4))
+gofstat(fitllogis)
+ks.test(MontoPago, "pllogis", shape=shapewei, scale=scalewei)
+ad.test(pllogis(MontoPago, shape=shapewei, scale=scalewei))
+
+```
+```{r include=FALSE}
+fitpareto<- fitdist(MontoPago, "pareto")
+summary(fitpareto)
+confint(fitpareto)
+shapepareto <- fitpareto$estimate[1]
+scalepareto <- fitpareto$estimate[2]
+paramPareto <- paste("alpha=", round(shapepareto,4),", theta=", round(scalepareto,4))
+gofstat(fitpareto)
+ks.test(MontoPago, "ppareto", shape=shapepareto, scale=scalepareto)
+ad.test(ppareto(MontoPago, shape=shapepareto, scale=scalepareto))
+```
+```{r include=FALSE}
+fitlgamma<- fitdist(MontoPago, "lgamma")
+summary(fitlgamma)
+confint(fitlgamma)
+shapelgamma <- fitlgamma$estimate[1]
+ratelgamma <- fitlgamma$estimate[2]
+paramlgamma <- paste("alpha=", round(shapelgamma,4),", theta=", round(ratelgamma,4))
+gofstat(fitlgamma)
+ks.test(MontoPago, "lgamma")
+ad.test(lgamma(MontoPago))
+```
+```{r echo=FALSE}
+cdfcomp(list(fitgamma2, fitln, fitwei, fitllogis, fitpareto, fitlgamma), xlab="Monto de Pago", ylab="Función de distribución acumulada", main="Comparación entre las distribuciones ajustadas y la empírica")
+```
+```{r echo=FALSE}
+Distribuciones <- c("Gamma", "LogNormal", "Weibull", "LogLogistica", "Pareto", "LogGamma")
+AIC <- c(fitgamma2$aic, fitln$aic, fitwei$aic, fitllogis$aic, fitpareto$aic, fitlgamma$aic)
+BIC <- c(fitgamma2$bic, fitln$bic, fitwei$bic, fitllogis$bic, fitpareto$bic, fitlgamma$bic)
+Loglikelihood <- c(fitgamma2$loglik, fitln$loglik, fitwei$loglik, fitllogis$loglik, fitpareto$loglik, fitlgamma$loglik)
+KSvalue <- c(gofstat(fitgamma2)$ks, gofstat(fitln)$ks, gofstat(fitwei)$ks, gofstat(fitllogis)$ks, gofstat(fitpareto)$ks, gofstat(fitlgamma)$ks)
+KSresult <- c(gofstat(fitgamma2)$kstest, gofstat(fitln)$kstest, gofstat(fitwei)$kstest, gofstat(fitllogis)$kstest, gofstat(fitpareto)$kstest,gofstat(fitlgamma)$kstest)
+TablaComp <- data.frame(Distribuciones, AIC, BIC, Loglikelihood, KSvalue, KSresult)%>%
+                arrange(AIC)
+kable(TablaComp, caption="Comparación del ajuste paramétrico para el monto de pago de los siniestros")
+```
+
+De lo que podemos concluir que el mejor ajuste paramétrico para el monto de pago de los siniestros es la distribución LogGamma, al tener los menores AIC y BIC, además del mayor Loglikelihood, y al no haber rechazado la hipótesis nula de la prueba de ajuste Kolmogorov-Smirnov.
+
+### 5.1.3. Mejores modelos para el monto de pago de siniestros
+
+Concluimos que la distribución LogGamma con los parámetros mostrados a continuación es el mejor ajuste paramétrico para la variable del monto de pago de siniestros, mientras que el kernel triangular es el mejor ajuste no paramétrico. Visualmente, podemos observar que la distribución paramétrica LogGamma es el mejor ajuste entre ambos.
+
+```{r echo=FALSE}
+loggamma <- data.frame(fitlgamma$estimate, confint(fitlgamma))
+names(loggamma) <- c("Parámetro", "Límite inferior (2.5%)", "Límite superior (97.5%)")
+kable(loggamma, caption="Parámetros de la LogGamma")
+```
+
+
+```{r echo=FALSE}
+plot(density(lgamma(MontoPago)), col="red", ylab="Densidad", xlab="Monto de Pago", main="Mejores modelos para el monto de siniestros")
+lines(density(MontoPago), col="black")
+lines(k_triangularMP, col="cyan")
+legend("topright", legend=c("Distribución empírica", "Kernel triangular","LogGamma"), lty=1, col=c("black","cyan","red"))
+```
+
+# 6. Anexos
+
+
+# 7. Bibliografía
+Allianz. (2023). Diccionario de Seguros. Obtenido de Portal de Allianz Compañía de Seguros: https://www.allianz.es/descubre-allianz/mediadores/diccionario-de-seguros.html
+
+Broverman, S. A. (2009). Actex study manual. United States of America: Actex Publications.
+
+Castillo García, N. (2012). Modelación matemática y computacional: la respuesta al anhelo ancestral de predecir a la naturaleza. Obtenido de Sitio de Divulgación de la Ciencia UNAM: https://ciencia.unam.mx/leer/115/Modelacion_matematica_y_computacional_la_respuesta_al_anhelo_ancestral_de_predecir_a_la_naturaleza
+
+Klugman, S. A. (2012). Loss Models. New Jersey: WILEY.
+
+MAPFRE. (2023). ¿Qué es el seguro? Obtenido de Sitio de Cultura Aseguradora Fundación MAPFRE: https://segurosypensionesparatodos.fundacionmapfre.org/seguros/definicion-seguro-asegurar/
+
+Vera Correa, M. G. (2017). Pruebas de bondad de ajuste. Obtenido de UAEH.edu: https://www.uaeh.edu.mx/docencia/P_Presentaciones/Sahagun/industrial/2017/Pruebas_de_bondad_de_ajuste.pdf
+
